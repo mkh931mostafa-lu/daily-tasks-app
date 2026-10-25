@@ -11,7 +11,7 @@
   <meta name="theme-color" content="#090d16">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="تسک روزانه">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="icon" href="icon-192.png">
@@ -88,6 +88,11 @@
       left: 0;
       right: 0;
       z-index: 50;
+      transform: translateZ(0);
+      -webkit-transform: translateZ(0);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      will-change: transform;
     }
 
     .title {
@@ -757,11 +762,11 @@
       }
 
       .header {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr auto;
         border-radius: 0 0 20px 20px;
         padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px;
         padding-left: calc(env(safe-area-inset-left, 0px) + 64px);
-        gap: 10px;
+        gap: 8px;
       }
 
       .app-logo {
@@ -769,8 +774,25 @@
         height: 34px;
       }
 
+      .title {
+        min-width: 0;
+      }
+
+      .title h1 {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
       .controls {
-        justify-content: center;
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+      }
+
+      .controls .btn {
+        padding: 8px 10px;
+        font-size: 12px;
+        white-space: nowrap;
       }
 
       .stats {
