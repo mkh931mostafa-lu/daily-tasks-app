@@ -1,0 +1,1876 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Daily Tasks Tracker</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+
+  <!-- iOS "Add to Home Screen" / PWA support -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#090d16">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="تسک روزانه">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="icon" href="icon-192.png">
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      });
+    }
+  </script>
+
+  <style>
+    :root {
+      --bg: #090d16;
+      --panel: #111827;
+      --panel-2: #172033;
+      --panel-3: #1f2937;
+      --border: #2d3a52;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --blue: #3b82f6;
+      --blue-2: #2563eb;
+      --green: #22c55e;
+      --red: #ef4444;
+      --yellow: #f59e0b;
+      --purple: #a855f7;
+      --cyan: #06b6d4;
+      --shadow: 0 20px 60px rgba(0,0,0,.35);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Vazirmatn", sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(59,130,246,.18), transparent 35%),
+        radial-gradient(circle at bottom left, rgba(168,85,247,.16), transparent 35%),
+        var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-left: env(safe-area-inset-left, 0px);
+      padding-right: env(safe-area-inset-right, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    input, select, textarea {
+      font-size: 16px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 16px 20px 30px;
+    }
+
+    .header {
+      background: linear-gradient(135deg, rgba(17,24,39,.96), rgba(31,41,55,.94));
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      padding: 18px 24px;
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 18px;
+      align-items: center;
+      position: sticky;
+      top: 10px;
+      z-index: 20;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+
+    .title h1 {
+      margin: 0 0 6px;
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: -.5px;
+    }
+
+    .title p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    button, select, input {
+      font-family: inherit;
+    }
+
+    .btn {
+      border: 0;
+      color: white;
+      background: var(--panel-3);
+      border: 1px solid var(--border);
+      padding: 10px 16px;
+      border-radius: 14px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: .18s;
+      min-height: 43px;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,.22);
+      filter: brightness(1.08);
+    }
+
+    .btn.primary {
+      background: linear-gradient(135deg, var(--blue), var(--blue-2));
+      border-color: rgba(59,130,246,.7);
+    }
+
+    .btn.green {
+      background: linear-gradient(135deg, #16a34a, #15803d);
+      border-color: rgba(34,197,94,.7);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 18px;
+      margin-top: 18px;
+      align-items: stretch;
+    }
+
+    .card {
+      background: rgba(17,24,39,.92);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .card-header {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(31,41,55,.55);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .card-header h2 {
+      font-size: 17px;
+      margin: 0;
+      font-weight: 900;
+    }
+
+    .card-body {
+      padding: 16px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .date-box {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .date-main {
+      font-size: 20px;
+      font-weight: 900;
+      color: #fff;
+      text-align: center;
+      flex: 1;
+    }
+
+    .date-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .date-nav-btn {
+      border: 1px solid var(--border);
+      background: rgba(15,23,42,.9);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 6px 10px;
+      min-height: 34px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .date-nav-btn:hover {
+      filter: brightness(1.08);
+    }
+
+    .date-sub {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .note {
+      background: linear-gradient(135deg, rgba(245,158,11,.16), rgba(168,85,247,.12));
+      border: 1px solid rgba(245,158,11,.35);
+      border-radius: 16px;
+      padding: 10px 14px;
+      color: #fde68a;
+      line-height: 1.6;
+      font-weight: 700;
+      margin-bottom: 14px;
+      font-size: 12px;
+    }
+
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .task-row {
+      display: grid;
+      grid-template-columns: 1fr 38px 38px 38px;
+      gap: 6px;
+      align-items: center;
+      background: rgba(15,23,42,.8);
+      border: 1px solid rgba(45,58,82,.8);
+      border-radius: 12px;
+      padding: 4px 8px;
+      height: 36px;
+    }
+
+    .task-name {
+      font-weight: 700;
+      font-size: 12px;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .status-btn {
+      width: 38px;
+      height: 28px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #0f172a;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: .15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .status-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .status-btn.done.active {
+      background: rgba(34,197,94,.2);
+      color: var(--green);
+      border-color: rgba(34,197,94,.75);
+    }
+
+    .status-btn.fail.active {
+      background: rgba(239,68,68,.18);
+      color: var(--red);
+      border-color: rgba(239,68,68,.7);
+    }
+
+    .status-btn.clear.active {
+      background: rgba(156,163,175,.15);
+      color: var(--text);
+      border-color: rgba(156,163,175,.45);
+    }
+
+    .status-btn.clear.disabled {
+      opacity: .28;
+      cursor: not-allowed;
+    }
+
+    .task-manage {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .task-manage-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      background: rgba(15,23,42,.6);
+      border: 1px solid rgba(45,58,82,.8);
+      border-radius: 10px;
+      padding: 6px 10px;
+    }
+
+    .task-manage-row span {
+      font-size: 12px;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .task-manage-row button {
+      border: 1px solid rgba(239,68,68,.45);
+      background: rgba(239,68,68,.15);
+      color: var(--red);
+      border-radius: 8px;
+      width: 28px;
+      height: 28px;
+      cursor: pointer;
+      font-weight: 900;
+      flex-shrink: 0;
+    }
+
+    .task-add-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .task-add-row input {
+      flex: 1;
+      background: rgba(15,23,42,.9);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 16px;
+    }
+
+    .task-add-row button {
+      flex-shrink: 0;
+      padding: 8px 14px;
+      min-height: auto;
+    }
+
+    .right-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      height: 100%;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .stat {
+      background: rgba(15,23,42,.78);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px 16px;
+    }
+
+    .stat .label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .stat .value {
+      font-size: 22px;
+      font-weight: 900;
+    }
+
+    .stat.green .value { color: var(--green); }
+    .stat.red .value { color: var(--red); }
+    .stat.blue .value { color: var(--blue); }
+    .stat.yellow .value { color: var(--yellow); }
+
+    .report-card {
+      flex: 1;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .tab {
+      padding: 8px 14px;
+      border-radius: 12px;
+      background: rgba(15,23,42,.85);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      cursor: pointer;
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .tab.active {
+      background: linear-gradient(135deg, rgba(59,130,246,.35), rgba(37,99,235,.22));
+      color: #fff;
+      border-color: rgba(59,130,246,.8);
+    }
+
+    #reportArea {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .table-wrap {
+      width: 100%;
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: rgba(15,23,42,.65);
+      flex: 1;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      table-layout: fixed;
+    }
+
+    th, td {
+      border-left: 1px solid rgba(45,58,82,.9);
+      border-bottom: 1px solid rgba(45,58,82,.9);
+      padding: 6px 4px;
+      text-align: center;
+      white-space: nowrap;
+      font-size: 12px;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      background: #1f2937;
+      z-index: 3;
+      color: #dbeafe;
+      font-weight: 900;
+    }
+
+    th:first-child,
+    td:first-child {
+      position: sticky;
+      right: 0;
+      background: #111827;
+      z-index: 4;
+      text-align: right;
+      font-weight: 800;
+      width: 145px;
+      white-space: nowrap;
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+
+    td:first-child {
+      z-index: 2;
+    }
+
+    .mark {
+      font-size: 16px;
+      font-weight: 900;
+    }
+
+    .mark.done { color: var(--green); }
+    .mark.fail { color: var(--red); }
+    .mark.empty { color: #64748b; }
+    .mark.skip { color: #94a3b8; }
+
+    .weekly-report, .period-report {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .weekly-report .table-wrap {
+      max-height: none;
+    }
+
+    .weekly-report th,
+    .weekly-report td {
+      height: 32px;
+      padding: 2px 3px;
+      font-size: 12px;
+    }
+
+    .period-report th,
+    .period-report td {
+      height: 28px;
+      padding: 2px 1px;
+      font-size: 11px;
+    }
+
+    .mini {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    .toast {
+      position: fixed;
+      left: 18px;
+      bottom: 18px;
+      background: #111827;
+      color: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px 16px;
+      box-shadow: var(--shadow);
+      transform: translateY(120px);
+      opacity: 0;
+      transition: .25s;
+      z-index: 100;
+      max-width: 360px;
+      line-height: 1.8;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .sync-dot {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .sync-dot-off { background: var(--muted); opacity: .5; }
+    .sync-dot-ok { background: #2ecc71; }
+    .sync-dot-err { background: var(--red); }
+    .sync-dot-busy { background: var(--yellow); animation: pulse 1s infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.55);
+      z-index: 200;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .modal-box {
+      background: var(--panel);
+      border-radius: 18px 18px 0 0;
+      padding: 18px 18px calc(18px + env(safe-area-inset-bottom,0px));
+      width: 100%;
+      max-width: 520px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow);
+    }
+    .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .modal-head h3 { margin: 0; font-size: 16px; font-weight: 800; }
+    .modal-close { background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; padding: 4px 8px; }
+    .modal-desc { font-size: 12.5px; color: var(--muted); line-height: 1.9; margin: 0 0 10px; }
+    .sync-status-line { font-size: 12.5px; margin-bottom: 6px; }
+    #syncStatusText { font-weight: 700; }
+    #syncTokenInput {
+      width: 100%;
+      box-sizing: border-box;
+      background: rgba(15,23,42,.9);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 12px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 16px;
+      direction: ltr;
+      text-align: left;
+    }
+    .modal-btn-row { display: flex; gap: 8px; margin-top: 12px; }
+    .modal-btn-row button { flex: 1; }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--blue), var(--blue-2));
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 13px;
+    }
+    .btn-secondary {
+      background: var(--panel-3);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 13px;
+    }
+    .btn-danger-link {
+      display: block;
+      width: 100%;
+      background: none;
+      border: none;
+      color: var(--red);
+      font-size: 12px;
+      margin-top: 12px;
+      cursor: pointer;
+      font-family: inherit;
+      padding: 6px;
+    }
+    .modal-help { margin-top: 14px; font-size: 12px; color: var(--muted); }
+    .modal-help summary { cursor: pointer; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+    .modal-help ol { margin: 0 0 10px; padding-right: 18px; line-height: 2; }
+    .modal-help p { line-height: 1.8; margin: 0; }
+
+    @media (min-width: 900px) {
+      .modal-overlay { align-items: center; }
+      .modal-box { border-radius: 18px; max-width: 460px; }
+    }
+
+    .jalali-picker {
+      display: grid;
+      grid-template-columns: 1fr 1.15fr 1fr;
+      gap: 7px;
+      direction: rtl;
+    }
+    .jalali-picker.compact { min-width: 230px; }
+    .jalali-picker select {
+      width: 100%;
+      min-height: 36px;
+      background: rgba(15,23,42,.9);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 4px 6px;
+      outline: none;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 12px;
+    }
+    .report-range {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+      align-items: center;
+    }
+    .range-item { display: grid; gap: 4px; }
+    .range-item > span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .report-section-title {
+      margin: 12px 0 8px;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: rgba(31,41,55,.55);
+      font-size: 13px;
+      font-weight: 900;
+    }
+    .report-block { margin-bottom: 14px; }
+    .chart-card {
+      background: rgba(15,23,42,.75);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px;
+      margin-top: 12px;
+    }
+    .chart-card h3 { margin: 0 0 8px; font-size: 14px; }
+    
+    .task-chart-row {
+      display: grid;
+      grid-template-columns: 135px 1fr 50px;
+      gap: 10px;
+      align-items: center;
+      margin: 5px 0;
+    }
+    .task-chart-name {
+      font-size: 11px;
+      font-weight: 700;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .task-chart-bar {
+      height: 10px;
+      background: rgba(255,255,255,.08);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .task-chart-bar span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, var(--green), var(--cyan));
+      border-radius: inherit;
+    }
+    .task-chart-value {
+      font-size: 11px;
+      font-weight: 900;
+      text-align: left;
+    }
+    .status-line {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    @media (max-width: 1050px) {
+      .app {
+        padding-top: var(--mobile-header-h, 90px);
+      }
+
+      .header, .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        margin: 0;
+        border-radius: 0 0 20px 20px;
+        padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px;
+        z-index: 50;
+      }
+
+      .controls {
+        justify-content: flex-start;
+      }
+
+      .stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .title h1 { font-size: 19px; }
+      .card-header h2 { font-size: 14px; }
+      .date-main { font-size: 16px; }
+      .date-sub { font-size: 11px; }
+      .date-nav-btn { font-size: 11px; }
+      .note { font-size: 11px; }
+      .task-name { font-size: 11px; }
+      .status-btn { font-size: 13px; }
+      .stat .label { font-size: 10px; }
+      .stat .value { font-size: 17px; }
+      .tab { font-size: 11px; }
+      .jalali-picker select { font-size: 16px; }
+      .range-item > span { font-size: 10px; }
+      .report-section-title { font-size: 12px; }
+      th, td { font-size: 10px; padding: 4px 2px; }
+      .weekly-report th, .weekly-report td { font-size: 10px; }
+      .period-report th, .period-report td { font-size: 9px; }
+      .mark { font-size: 13px; }
+      .task-chart-name { font-size: 10px; }
+      .task-chart-value { font-size: 10px; }
+      .status-line { font-size: 11px; }
+      .mini { font-size: 9px; }
+    }
+
+    @media (max-width: 650px) {
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .title h1 {
+        font-size: 17px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <header class="header" id="appHeader">
+      <div class="title">
+        <h1>چک‌لیست تسک‌های روزانه</h1>
+      </div>
+
+      <div class="controls">
+        <button class="btn" id="syncSettingsBtn" style="position:relative;">
+          🔗 همگام‌سازی
+          <span id="syncDot" class="sync-dot sync-dot-off"></span>
+        </button>
+      </div>
+    </header>
+
+    <div class="modal-overlay" id="syncModal" style="display:none;">
+      <div class="modal-box">
+        <div class="modal-head">
+          <h3>همگام‌سازی با گیت‌هاب</h3>
+          <button class="modal-close" id="syncModalClose">✕</button>
+        </div>
+        <p class="modal-desc">با وصل کردن یه توکن گیت‌هاب، هر تغییری که تو اپ میدی خودکار رو ریپازیتوری <b>mkh931mostafa-lu/daily-tasks-app</b> ذخیره میشه و از هر دستگاهی که همین توکن رو وارد کنی دیتا یکی می‌مونه و نیازی به ذخیره دستی نیست.</p>
+        <div id="syncStatusLine" class="sync-status-line">وضعیت: <span id="syncStatusText">متصل نیست</span></div>
+        <label class="date-sub" style="display:block;margin-top:10px;">توکن دسترسی گیت‌هاب (Fine-grained PAT)</label>
+        <input type="password" id="syncTokenInput" placeholder="github_pat_xxxxxxxx" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <div class="modal-btn-row">
+          <button class="btn-primary" id="syncSaveBtn">ذخیره و اتصال</button>
+          <button class="btn-secondary" id="syncNowBtn">همگام‌سازی الان</button>
+        </div>
+        <button class="btn-danger-link" id="syncDisconnectBtn">قطع اتصال و حذف توکن از این دستگاه</button>
+        <details class="modal-help">
+          <summary>چطور توکن بسازم؟</summary>
+          <ol>
+            <li>برو به github.com → تنظیمات حساب (Settings) → پایین صفحه <b>Developer settings</b></li>
+            <li><b>Personal access tokens</b> → <b>Fine-grained tokens</b> → <b>Generate new token</b></li>
+            <li>در بخش <b>Repository access</b>، گزینه «Only select repositories» رو بزن و فقط ریپوی <b>daily-tasks-app</b> رو انتخاب کن (نه بقیه سایت‌هات)</li>
+            <li>در بخش <b>Permissions → Repository permissions</b>، برای <b>Contents</b> مقدار «Read and write» رو انتخاب کن — بقیه رو دست نزن</li>
+            <li>Generate token بزن، کدی که میده رو کپی کن و همینجا پیست کن</li>
+          </ol>
+          <p>این توکن فقط رو همین گوشی/مرورگرت ذخیره میشه و هیچ‌وقت داخل خود کد یا ریپوی عمومی قرار نمی‌گیره. چون توکن رو فقط به همین یه ریپو محدود کردی، به سایت‌های دیگه‌ت هیچ دسترسی‌ای نداره.</p>
+        </details>
+      </div>
+    </div>
+
+    <main class="grid">
+      <section class="card">
+        <div class="card-header">
+          <h2>ثبت امروز / روز انتخابی</h2>
+          <button class="date-nav-btn" id="editTasksBtn" type="button" title="مدیریت تسک‌ها">مدیریت تسک‌ها</button>
+        </div>
+        <div class="card-body">
+          <div class="date-box">
+            <div class="date-nav">
+              <button class="date-nav-btn" id="prevDayBtn" type="button" title="روز قبل">‹ روز قبل</button>
+              <div class="date-main" id="jalaliDateText">پنجشنبه، 30 مهر 1405</div>
+              <button class="date-nav-btn" id="nextDayBtn" type="button" title="روز بعد">روز بعد ›</button>
+            </div>
+            <div class="date-sub" id="gregorianDateText">تاریخ داخلی: 2026-10-22</div>
+          </div>
+
+          <div class="note">
+            زمانی که داری با تمرکز کاری انجام میدی هر فکری اومد تو ذهنت اونو یادداشت کن / اینا قسمتای تاریک ذهنت هستن
+          </div>
+
+          <div class="task-list" id="taskList"><div class="task-row">
+          <div class="task-name" title="آینه شکرگزاری دعا">آینه شکرگزاری دعا</div>
+          <button class="status-btn done " title="انجام شد">✓</button>
+          <button class="status-btn fail " title="انجام نشد">×</button>
+          <button class="status-btn clear  disabled" title="فقط برای ورزش فعال است" disabled="">-</button>
+        </div><div class="task-row">
+          <div class="task-name" title="کتاب صوتی">کتاب صوتی</div>
+          <button class="status-btn done " title="انجام شد">✓</button>
+          <button class="status-btn fail " title="انجام نشد">×</button>
+          <button class="status-btn clear  disabled" title="فقط برای ورزش فعال است" disabled="">-</button>
+        </div><div class="task-row">
+          <div class="task-name" title="کتاب کاغذی">کتاب کاغذی</div>
+          <button class="status-btn done " title="انجام شد">✓</button>
+          <button class="status-btn fail " title="انجام نشد">×</button>
+          <button class="status-btn clear  disabled" title="فقط برای ورزش فعال است" disabled="">-</button>
+        </div><div class="task-row">
+          <div class="task-name" title="کست باکس">کست باکس</div>
+          <button class="status-btn done " title="انجام شد">✓</button>
+          <button class="status-btn fail " title="انجام نشد">×</button>
+          <button class="status-btn clear  disabled" title="فقط برای ورزش فعال است" disabled="">-</button>
+        </div><div class="task-row">
+          <div class="task-name" title="زبان">زبان</div>
+          <button class="status-btn done " title="انجام شد">✓</button>
+          <button class="status-btn fail " title="انجام نشد">×</button>
+          <button class="status-btn clear  disabled" title="فقط برای ورزش فعال است" disabled="">-</button>
+        </div><div class="task-row">
+          <div class="task-name" title="تمرین لاس">تمرین لاس</div>
+          <button class="status-btn done " title="انجام شد">✓</button>
+          <button class="status-btn fail " title="انجام نشد">×</button>
+          <button class="status-btn clear  disabled" title="فقط برای ورزش فعال است" disabled="">-</button>
+        </div><div class="task-row">
+          <div class="task-name" title="کدا نواقص">کدا نواقص</div>
+          <button class="status-btn done " title="انجام شد">✓</button>
+          <button class="status-btn fail " title="انجام نشد">×</button>
+          <button class="status-btn clear  disabled" title="فقط برای ورزش فعال است" disabled="">-</button>
+        </div><div class="task-row">
+          <div class="task-name" title="مرور کدا">مرور کدا</div>
+          <button class="status-btn done " title="انجام شد">✓</button>
+          <button class="status-btn fail " title="انجام نشد">×</button>
+          <button class="status-btn clear  disabled" title="فقط برای ورزش فعال است" disabled="">-</button>
+        </div><div class="task-row">
+          <div class="task-name" title="آواز">آواز</div>
+          <button class="status-btn done " title="انجام شد">✓</button>
+          <button class="status-btn fail " title="انجام نشد">×</button>
+          <button class="status-btn clear  disabled" title="فقط برای ورزش فعال است" disabled="">-</button>
+        </div><div class="task-row">
+          <div class="task-name" title="ورزش">ورزش</div>
+          <button class="status-btn done " title="انجام شد">✓</button>
+          <button class="status-btn fail " title="انجام نشد">×</button>
+          <button class="status-btn clear  " title="روز بدون ورزش">-</button>
+        </div><div class="task-row">
+          <div class="task-name" title="بیزنس جدید">بیزنس جدید</div>
+          <button class="status-btn done " title="انجام شد">✓</button>
+          <button class="status-btn fail " title="انجام نشد">×</button>
+          <button class="status-btn clear  disabled" title="فقط برای ورزش فعال است" disabled="">-</button>
+        </div><div class="task-row">
+          <div class="task-name" title="فیلم">فیلم</div>
+          <button class="status-btn done " title="انجام شد">✓</button>
+          <button class="status-btn fail " title="انجام نشد">×</button>
+          <button class="status-btn clear  disabled" title="فقط برای ورزش فعال است" disabled="">-</button>
+        </div><div class="task-row">
+          <div class="task-name" title="مدیتیشن دفتر 5 تایی">مدیتیشن دفتر 5 تایی</div>
+          <button class="status-btn done " title="انجام شد">✓</button>
+          <button class="status-btn fail " title="انجام نشد">×</button>
+          <button class="status-btn clear  disabled" title="فقط برای ورزش فعال است" disabled="">-</button>
+        </div><div class="task-row">
+          <div class="task-name" title="مخارج روزانه">مخارج روزانه</div>
+          <button class="status-btn done " title="انجام شد">✓</button>
+          <button class="status-btn fail " title="انجام نشد">×</button>
+          <button class="status-btn clear  disabled" title="فقط برای ورزش فعال است" disabled="">-</button>
+        </div><div class="task-row">
+          <div class="task-name" title="موهام">موهام</div>
+          <button class="status-btn done " title="انجام شد">✓</button>
+          <button class="status-btn fail " title="انجام نشد">×</button>
+          <button class="status-btn clear  disabled" title="فقط برای ورزش فعال است" disabled="">-</button>
+        </div></div>
+
+          <div class="task-manage" id="taskManagePanel" style="display:none;">
+            <div class="task-manage-list" id="taskManageList"></div>
+            <div class="task-add-row">
+              <input type="text" id="newTaskInput" placeholder="اسم تسک جدید...">
+              <button class="btn primary" id="addTaskBtn" type="button">افزودن</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="right-panel">
+        <div class="stats" id="stats">
+        <div class="stat green">
+          <div class="label">تیک‌های امروز</div>
+          <div class="value">0</div>
+        </div>
+        <div class="stat red">
+          <div class="label">ضربدرهای امروز</div>
+          <div class="value">0</div>
+        </div>
+        <div class="stat blue">
+          <div class="label">درصد هفته</div>
+          <div class="value">34%</div>
+        </div>
+        <div class="stat yellow">
+          <div class="label">درصد ماه ثبت‌شده</div>
+          <div class="value">36%</div>
+        </div>
+      </div>
+
+        <section class="card report-card">
+          <div class="card-header">
+            <h2>گزارش</h2>
+            <div class="report-range">
+              <div class="range-item">
+                <span>از تاریخ</span>
+                <div class="jalali-picker compact" id="reportFromPicker"><select class="j-year" aria-label="سال"><option value="1400">1400</option><option value="1401">1401</option><option value="1402">1402</option><option value="1403">1403</option><option value="1404">1404</option><option value="1405">1405</option><option value="1406">1406</option><option value="1407">1407</option><option value="1408">1408</option><option value="1409">1409</option><option value="1410">1410</option></select><select class="j-month" aria-label="ماه"><option value="1">فروردین</option><option value="2">اردیبهشت</option><option value="3">خرداد</option><option value="4">تیر</option><option value="5">مرداد</option><option value="6">شهریور</option><option value="7">مهر</option><option value="8">آبان</option><option value="9">آذر</option><option value="10">دی</option><option value="11">بهمن</option><option value="12">اسفند</option></select><select class="j-day" aria-label="روز"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option></select></div>
+              </div>
+              <div class="range-item">
+                <span>تا تاریخ</span>
+                <div class="jalali-picker compact" id="reportToPicker"><select class="j-year" aria-label="سال"><option value="1400">1400</option><option value="1401">1401</option><option value="1402">1402</option><option value="1403">1403</option><option value="1404">1404</option><option value="1405">1405</option><option value="1406">1406</option><option value="1407">1407</option><option value="1408">1408</option><option value="1409">1409</option><option value="1410">1410</option></select><select class="j-month" aria-label="ماه"><option value="1">فروردین</option><option value="2">اردیبهشت</option><option value="3">خرداد</option><option value="4">تیر</option><option value="5">مرداد</option><option value="6">شهریور</option><option value="7">مهر</option><option value="8">آبان</option><option value="9">آذر</option><option value="10">دی</option><option value="11">بهمن</option><option value="12">اسفند</option></select><select class="j-day" aria-label="روز"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option></select></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <div class="tabs">
+              <button class="tab" data-view="week">هفتگی</button>
+              <button class="tab active" data-view="month">ماهانه</button>
+              <button class="tab" data-view="multi">چندماهه</button>
+            </div>
+
+            <div id="reportArea"><div class="report-block period-report"><div class="report-section-title">مهر 1405</div>
+          <div class="status-line">گزارش ماهانه | انجام‌شده: 155 | انجام‌نشده: 279 | درصد: 34%</div><br>
+      <div class="table-wrap"><table><thead><tr><th>تسک</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th><th>11</th><th>12</th><th>13</th><th>14</th><th>15</th><th>16</th><th>17</th><th>18</th><th>19</th><th>20</th><th>21</th><th>22</th><th>23</th><th>24</th><th>25</th><th>26</th><th>27</th><th>28</th><th>29</th><th>30</th></tr></thead><tbody><tr><td>آینه شکرگزاری دعا</td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark empty">-</span></td></tr><tr><td>کتاب صوتی</td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark empty">-</span></td></tr><tr><td>کتاب کاغذی</td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark empty">-</span></td></tr><tr><td>کست باکس</td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark done">✓</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark done">✓</span></td><td><span class="mark fail">×</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark empty">-</span></td></tr><tr><td>زبان</td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark done">✓</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark empty">-</span></td></tr><tr><td>تمرین لاس</td><td><span class="mark done">✓</span></td><td><span class="mark fail">×</span></td><td><span class="mark done">✓</span></td><td><span class="mark fail">×</span></td><td><span class="mark done">✓</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark done">✓</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark done">✓</span></td><td><span class="mark fail">×</span></td><td><span class="mark done">✓</span></td><td><span class="mark fail">×</span></td><td><span class="mark done">✓</span></td><td><span class="mark fail">×</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark fail">×</span></td><td><span class="mark done">✓</span></td><td><span class="mark fail">×</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark fail">×</span></td><td><span class="mark done">✓</span></td><td><span class="mark fail">×</span></td><td><span class="mark empty">-</span></td></tr><tr><td>کدا نواقص</td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark done">✓</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark empty">-</span></td></tr><tr><td>مرور کدا</td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark empty">-</span></td></tr><tr><td>آواز</td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark done">✓</span></td><td><span class="mark empty">-</span></td></tr><tr><td>ورزش</td><td><span class="mark done">✓</span></td><td><span class="mark fail">×</span></td><td><span class="mark done">✓</span></td><td><span class="mark fail">×</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark fail">×</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark fail">×</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark fail">×</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark fail">×</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark empty">-</span></td></tr><tr><td>بیزنس جدید</td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark empty">-</span></td><td><span class="mark fail">×</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark fail">×</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark empty">-</span></td></tr><tr><td>فیلم</td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark done">✓</span></td><td><span class="mark fail">×</span></td><td><span class="mark done">✓</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark empty">-</span></td></tr><tr><td>مدیتیشن دفتر 5 تایی</td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark fail">×</span></td><td><span class="mark empty">-</span></td></tr><tr><td>مخارج روزانه</td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark empty">-</span></td></tr><tr><td>موهام</td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark done">✓</span></td><td><span class="mark empty">-</span></td></tr></tbody></table></div>
+          <div class="chart-card"><h3>درصد انجام هر تسک در مهر 1405</h3><div class="task-chart-row">
+          <div class="task-chart-name" title="آینه شکرگزاری دعا">آینه شکرگزاری دعا</div>
+          <div class="task-chart-bar"><span style="width:96.67%"></span></div>
+          <div class="task-chart-value">96.67%</div>
+        </div><div class="task-chart-row">
+          <div class="task-chart-name" title="کتاب صوتی">کتاب صوتی</div>
+          <div class="task-chart-bar"><span style="width:6.67%"></span></div>
+          <div class="task-chart-value">6.67%</div>
+        </div><div class="task-chart-row">
+          <div class="task-chart-name" title="کتاب کاغذی">کتاب کاغذی</div>
+          <div class="task-chart-bar"><span style="width:0%"></span></div>
+          <div class="task-chart-value">0%</div>
+        </div><div class="task-chart-row">
+          <div class="task-chart-name" title="کست باکس">کست باکس</div>
+          <div class="task-chart-bar"><span style="width:30%"></span></div>
+          <div class="task-chart-value">30%</div>
+        </div><div class="task-chart-row">
+          <div class="task-chart-name" title="زبان">زبان</div>
+          <div class="task-chart-bar"><span style="width:10%"></span></div>
+          <div class="task-chart-value">10%</div>
+        </div><div class="task-chart-row">
+          <div class="task-chart-name" title="تمرین لاس">تمرین لاس</div>
+          <div class="task-chart-bar"><span style="width:50%"></span></div>
+          <div class="task-chart-value">50%</div>
+        </div><div class="task-chart-row">
+          <div class="task-chart-name" title="کدا نواقص">کدا نواقص</div>
+          <div class="task-chart-bar"><span style="width:3.33%"></span></div>
+          <div class="task-chart-value">3.33%</div>
+        </div><div class="task-chart-row">
+          <div class="task-chart-name" title="مرور کدا">مرور کدا</div>
+          <div class="task-chart-bar"><span style="width:0%"></span></div>
+          <div class="task-chart-value">0%</div>
+        </div><div class="task-chart-row">
+          <div class="task-chart-name" title="آواز">آواز</div>
+          <div class="task-chart-bar"><span style="width:3.33%"></span></div>
+          <div class="task-chart-value">3.33%</div>
+        </div><div class="task-chart-row">
+          <div class="task-chart-name" title="ورزش">ورزش</div>
+          <div class="task-chart-bar"><span style="width:76.67%"></span></div>
+          <div class="task-chart-value">76.67%</div>
+        </div><div class="task-chart-row">
+          <div class="task-chart-name" title="بیزنس جدید">بیزنس جدید</div>
+          <div class="task-chart-bar"><span style="width:40%"></span></div>
+          <div class="task-chart-value">40%</div>
+        </div><div class="task-chart-row">
+          <div class="task-chart-name" title="فیلم">فیلم</div>
+          <div class="task-chart-bar"><span style="width:6.67%"></span></div>
+          <div class="task-chart-value">6.67%</div>
+        </div><div class="task-chart-row">
+          <div class="task-chart-name" title="مدیتیشن دفتر 5 تایی">مدیتیشن دفتر 5 تایی</div>
+          <div class="task-chart-bar"><span style="width:0%"></span></div>
+          <div class="task-chart-value">0%</div>
+        </div><div class="task-chart-row">
+          <div class="task-chart-name" title="مخارج روزانه">مخارج روزانه</div>
+          <div class="task-chart-bar"><span style="width:96.67%"></span></div>
+          <div class="task-chart-value">96.67%</div>
+        </div><div class="task-chart-row">
+          <div class="task-chart-name" title="موهام">موهام</div>
+          <div class="task-chart-bar"><span style="width:96.67%"></span></div>
+          <div class="task-chart-value">96.67%</div>
+        </div></div></div></div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast">اطلاعات روی فایل اصلی ذخیره شد ✅</div>
+
+  <script id="app-data" type="application/json">{"days":{"2026-08-06":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","زبان":"done","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","کست باکس":"fail","بیزنس جدید":"done","فیلم":"done","ورزش":"done","مدیتیشن دفتر 5 تایی":"done","مخارج روزانه":"done","موهام":"done"},"2026-07-23":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"done","زبان":"done","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"done","ورزش":"done","بیزنس جدید":"done","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-07-24":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"done","زبان":"done","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"done","ورزش":"done","بیزنس جدید":"done","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-07-25":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"done","زبان":"done","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"done","ورزش":"done","بیزنس جدید":"done","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-07-26":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"done","زبان":"done","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"done","ورزش":"done","بیزنس جدید":"done","فیلم":"done","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-07-27":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"done","زبان":"done","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"done","ورزش":"done","بیزنس جدید":"done","فیلم":"done","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-07-28":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"done","زبان":"done","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"done","ورزش":"done","بیزنس جدید":"done","فیلم":"done","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-07-29":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"done","زبان":"done","تمرین لاس":"done","کدا نواقص":"done","مرور کدا":"done","آواز":"done","ورزش":"done","بیزنس جدید":"done","فیلم":"fail","مدیتیشن دفتر 5 تایی":"done","مخارج روزانه":"done","موهام":"done"},"2026-07-30":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"done","زبان":"done","تمرین لاس":"done","کدا نواقص":"done","مرور کدا":"done","آواز":"done","ورزش":"done","بیزنس جدید":"done","فیلم":"fail","مدیتیشن دفتر 5 تایی":"done","مخارج روزانه":"done","موهام":"done"},"2026-07-31":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"done","زبان":"done","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"done","ورزش":"done","بیزنس جدید":"done","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-08-01":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"done","زبان":"done","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"done","ورزش":"done","بیزنس جدید":"done","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-08-02":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"done","کتاب کاغذی":"done","کست باکس":"done","زبان":"done","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"done","ورزش":"done","بیزنس جدید":"done","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-08-03":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"done","زبان":"done","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"done","ورزش":"done","بیزنس جدید":"done","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-08-04":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"done","زبان":"done","تمرین لاس":"done","مرور کدا":"fail","کدا نواقص":"fail","آواز":"done","ورزش":"done","بیزنس جدید":"done","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-08-05":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"done","زبان":"done","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"done","ورزش":"done","بیزنس جدید":"done","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-08-07":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"done","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"done","ورزش":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","موهام":"done","مخارج روزانه":"done","بیزنس جدید":"fail","زبان":"fail"},"2026-08-08":{"آینه شکرگزاری دعا":"done","کتاب کاغذی":"done","زبان":"done","تمرین لاس":"done","ورزش":"done","کتاب صوتی":"done","کست باکس":"done","آواز":"done","موهام":"done","مدیتیشن دفتر 5 تایی":"fail","فیلم":"fail","بیزنس جدید":"fail","مرور کدا":"fail","کدا نواقص":"fail","مخارج روزانه":"done"},"2026-08-09":{"آینه شکرگزاری دعا":"done","زبان":"done","تمرین لاس":"done","ورزش":"done","کدا نواقص":"fail","مرور کدا":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","کتاب کاغذی":"done","کتاب صوتی":"done","کست باکس":"done","آواز":"fail","بیزنس جدید":"fail","مخارج روزانه":"done","موهام":"done"},"2026-08-10":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-08-11":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"done","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-08-12":{"آینه شکرگزاری دعا":"fail","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"done","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-08-13":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","بیزنس جدید":"done","مخارج روزانه":"done","موهام":"done","ورزش":"done","مدیتیشن دفتر 5 تایی":"done","مرور کدا":"done","کدا نواقص":"done","تمرین لاس":"done","آواز":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","فیلم":"fail"},"2026-08-14":{"ورزش":"done","آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"done","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","موهام":"done","مخارج روزانه":"done","مدیتیشن دفتر 5 تایی":"fail","فیلم":"fail","بیزنس جدید":"done"},"2026-08-15":{"آینه شکرگزاری دعا":"done","موهام":"done","مخارج روزانه":"done","مدیتیشن دفتر 5 تایی":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","ورزش":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","آواز":"fail","بیزنس جدید":"fail","فیلم":"fail"},"2026-08-16":{"کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","کدا نواقص":"fail","مرور کدا":"fail","ورزش":"done","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","آینه شکرگزاری دعا":"fail","زبان":"fail","تمرین لاس":"fail","آواز":"fail","بیزنس جدید":"fail","مخارج روزانه":"done","موهام":"done"},"2026-08-17":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-08-18":{"آینه شکرگزاری دعا":"fail","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-08-19":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-08-20":{"مخارج روزانه":"done","آینه شکرگزاری دعا":"done","تمرین لاس":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","موهام":"done"},"2026-08-21":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"done","تمرین لاس":"done","کدا نواقص":"fail","آواز":"fail","مرور کدا":"fail","ورزش":"fail","بیزنس جدید":"done","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-08-22":{"آینه شکرگزاری دعا":"done","زبان":"done","تمرین لاس":"done","ورزش":"done","کدا نواقص":"fail","مرور کدا":"fail","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","آواز":"fail","بیزنس جدید":"done","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-08-23":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"fail","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-08-24":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"fail","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"fail","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-08-25":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"fail","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-08-26":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"fail","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","موهام":"done","مخارج روزانه":"done"},"2026-08-27":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"fail","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"fail","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-08-28":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"done","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-08-29":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"fail","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"fail","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-08-30":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-08-31":{"آینه شکرگزاری دعا":"done","زبان":"done","تمرین لاس":"done","ورزش":"done","بیزنس جدید":"done","فیلم":"fail","موهام":"done","مخارج روزانه":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","مدیتیشن دفتر 5 تایی":"fail"},"2026-09-01":{"آینه شکرگزاری دعا":"done","زبان":"done","تمرین لاس":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-09-02":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"done","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-09-03":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"fail","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","موهام":"done","مخارج روزانه":"done"},"2026-09-04":{"موهام":"done","مخارج روزانه":"done","مدیتیشن دفتر 5 تایی":"fail","فیلم":"fail","بیزنس جدید":"fail","ورزش":"done","آواز":"fail","مرور کدا":"fail","تمرین لاس":"done","کدا نواقص":"fail","زبان":"fail","کست باکس":"fail","کتاب کاغذی":"fail","کتاب صوتی":"fail","آینه شکرگزاری دعا":"done"},"2026-09-05":{"آینه شکرگزاری دعا":"done","زبان":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-09-06":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-09-07":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","زبان":"done","تمرین لاس":"done","کتاب کاغذی":"fail","کست باکس":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done","کدا نواقص":"fail"},"2026-09-08":{"آینه شکرگزاری دعا":"done","زبان":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-09-09":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","موهام":"done","مخارج روزانه":"done","مدیتیشن دفتر 5 تایی":"fail"},"2026-09-10":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"fail","بیزنس جدید":"done","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-09-12":{"آینه شکرگزاری دعا":"done","زبان":"done","تمرین لاس":"done","مخارج روزانه":"done","ورزش":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","موهام":"done"},"2026-09-11":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-09-13":{"آینه شکرگزاری دعا":"done","زبان":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-09-14":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-09-15":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-09-16":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"done","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-09-17":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"done","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"fail","بیزنس جدید":"done","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-09-18":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"done","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-09-19":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"done","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"done","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-09-20":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"fail","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-09-21":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"done","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","فیلم":"done","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done","بیزنس جدید":"done"},"2026-09-22":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-09-23":{"آینه شکرگزاری دعا":"done","کتاب کاغذی":"fail","کتاب صوتی":"fail","کست باکس":"fail","زبان":"fail","کدا نواقص":"fail","مرور کدا":"fail","تمرین لاس":"done","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-09-24":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"fail","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"fail","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-09-25":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","مدیتیشن دفتر 5 تایی":"fail","فیلم":"fail","مخارج روزانه":"done","موهام":"done"},"2026-09-26":{"آینه شکرگزاری دعا":"done","کتاب کاغذی":"fail","کتاب صوتی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"fail","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"fail","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-09-27":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","مدیتیشن دفتر 5 تایی":"fail","فیلم":"fail","زبان":"fail","بیزنس جدید":"fail","مخارج روزانه":"done","موهام":"done"},"2026-09-28":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"fail","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-09-29":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"fail","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","موهام":"done","مخارج روزانه":"done"},"2026-09-30":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"done","زبان":"fail","تمرین لاس":"fail","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-10-01":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"fail","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-10-02":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"fail","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-10-03":{"آینه شکرگزاری دعا":"done","زبان":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","تمرین لاس":"fail","کدا نواقص":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done","مرور کدا":"fail"},"2026-10-04":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"done","زبان":"fail","تمرین لاس":"done","موهام":"done","مخارج روزانه":"done","ورزش":"done","آواز":"fail","کدا نواقص":"fail","مرور کدا":"fail","بیزنس جدید":"done","مدیتیشن دفتر 5 تایی":"fail","فیلم":"fail"},"2026-10-05":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"done","زبان":"fail","تمرین لاس":"fail","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"done","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-10-06":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"done","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-10-07":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","موهام":"done","مخارج روزانه":"done","مدیتیشن دفتر 5 تایی":"fail","فیلم":"fail","بیزنس جدید":"fail","ورزش":"done","آواز":"fail","مرور کدا":"fail","کدا نواقص":"fail","تمرین لاس":"fail","زبان":"fail","کست باکس":"fail","کتاب کاغذی":"fail"},"2026-10-08":{"موهام":"done","آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"fail","بیزنس جدید":"done","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done"},"2026-10-09":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"fail","کدا نواقص":"done","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"done","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-10-10":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"done","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-10-11":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"done","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-10-12":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-10-13":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-10-14":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"fail","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-10-15":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"done","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","بیزنس جدید":"done","زبان":"fail","ورزش":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-10-16":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"fail","زبان":"fail","تمرین لاس":"fail","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"done","فیلم":"done","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-10-17":{"آینه شکرگزاری دعا":"done","زبان":"done","بیزنس جدید":"done","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"done","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-10-18":{"آینه شکرگزاری دعا":"done","زبان":"done","ورزش":"done","بیزنس جدید":"done","مخارج روزانه":"done","تمرین لاس":"done","کست باکس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","کتاب صوتی":"fail","مدیتیشن دفتر 5 تایی":"fail","موهام":"done","فیلم":"done","کتاب کاغذی":"fail"},"2026-10-19":{"آینه شکرگزاری دعا":"done","بیزنس جدید":"done","ورزش":"fail","کتاب صوتی":"fail","کتاب کاغذی":"fail","کست باکس":"done","زبان":"fail","تمرین لاس":"fail","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"},"2026-10-20":{"آینه شکرگزاری دعا":"done","کست باکس":"done","مخارج روزانه":"done","کتاب صوتی":"done","موهام":"done","کتاب کاغذی":"fail","زبان":"fail","تمرین لاس":"done","کدا نواقص":"fail","مرور کدا":"fail","آواز":"fail","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail"},"2026-10-21":{"آینه شکرگزاری دعا":"done","کتاب صوتی":"done","کتاب کاغذی":"fail","کست باکس":"done","زبان":"fail","تمرین لاس":"fail","کدا نواقص":"fail","مرور کدا":"fail","آواز":"done","ورزش":"done","بیزنس جدید":"fail","فیلم":"fail","مدیتیشن دفتر 5 تایی":"fail","مخارج روزانه":"done","موهام":"done"}},"updatedAt":"2026-10-21T20:56:49.885Z"}</script>
+
+  <script>
+    const DEFAULT_TASKS = [
+      "آینه شکرگزاری دعا",
+      "کتاب صوتی",
+      "کتاب کاغذی",
+      "کست باکس",
+      "زبان",
+      "تمرین لاس",
+      "کدا نواقص",
+      "مرور کدا",
+      "آواز",
+      "ورزش",
+      "بیزنس جدید",
+      "فیلم",
+      "مدیتیشن دفتر 5 تایی",
+      "مخارج روزانه",
+      "موهام"
+    ];
+    let TASKS = DEFAULT_TASKS.slice();
+
+    const STORAGE_KEY = "daily-tasks-local-data";
+    let APP_DATA = {"days":{},"updatedAt":null};
+
+    /* ---------------- GitHub sync ---------------- */
+    const GH_REPO = 'mkh931mostafa-lu/daily-tasks-app';
+    const GH_DATA_PATH = 'data.json';
+    const GH_TOKEN_KEY = 'gh_sync_token';
+    const GH_LAST_SYNC_KEY = 'gh_last_sync';
+    let ghSyncTimer = null;
+    let ghKnownSha = null; // sha of data.json as last seen from GitHub, used for safe writes
+
+    function getGhToken(){
+      try{ return localStorage.getItem(GH_TOKEN_KEY) || ''; }catch(e){ return ''; }
+    }
+    function setGhToken(t){
+      try{ localStorage.setItem(GH_TOKEN_KEY, t); }catch(e){}
+    }
+    function clearGhToken(){
+      try{ localStorage.removeItem(GH_TOKEN_KEY); localStorage.removeItem(GH_LAST_SYNC_KEY); }catch(e){}
+      ghKnownSha = null;
+    }
+    function utf8ToB64(str){
+      return btoa(unescape(encodeURIComponent(str)));
+    }
+    function b64ToUtf8(str){
+      return decodeURIComponent(escape(atob(str)));
+    }
+    function setSyncDot(mode){
+      const dot = $("syncDot");
+      if(!dot) return;
+      dot.className = 'sync-dot sync-dot-' + mode;
+    }
+    function setSyncStatusText(text){
+      const el = $("syncStatusText");
+      if(el) el.textContent = text;
+    }
+
+    async function fetchRemoteState(){
+      const token = getGhToken();
+      if(!token) return null;
+      setSyncDot('busy');
+      try{
+        const resp = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${GH_DATA_PATH}`, {
+          headers:{ 'Authorization':'token '+token, 'Accept':'application/vnd.github+json' },
+          cache:'no-store'
+        });
+        if(resp.status===404){
+          ghKnownSha = null;
+          setSyncDot('off');
+          return null;
+        }
+        if(!resp.ok){
+          setSyncDot('err');
+          return null;
+        }
+        const j = await resp.json();
+        ghKnownSha = j.sha;
+        const parsed = JSON.parse(b64ToUtf8(j.content.replace(/\n/g,'')));
+        setSyncDot('ok');
+        try{ localStorage.setItem(GH_LAST_SYNC_KEY, new Date().toISOString()); }catch(e){}
+        return parsed;
+      }catch(e){
+        console.error('github fetch error', e);
+        setSyncDot('err');
+        return null;
+      }
+    }
+
+    async function pushStateToGithub(){
+      const token = getGhToken();
+      if(!token) return;
+      setSyncDot('busy');
+      try{
+        try{
+          const getResp = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${GH_DATA_PATH}`, {
+            headers:{ 'Authorization':'token '+token, 'Accept':'application/vnd.github+json' },
+            cache:'no-store'
+          });
+          if(getResp.ok){ const j = await getResp.json(); ghKnownSha = j.sha; }
+          else if(getResp.status===404){ ghKnownSha = null; }
+        }catch(e){}
+
+        const body = {
+          message: 'بروزرسانی دیتا — ' + new Date().toISOString(),
+          content: utf8ToB64(JSON.stringify(APP_DATA)),
+          branch: 'main'
+        };
+        if(ghKnownSha) body.sha = ghKnownSha;
+
+        const putResp = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${GH_DATA_PATH}`, {
+          method:'PUT',
+          headers:{ 'Authorization':'token '+token, 'Accept':'application/vnd.github+json', 'Content-Type':'application/json' },
+          body: JSON.stringify(body)
+        });
+        if(!putResp.ok){
+          setSyncDot('err');
+          const errBody = await putResp.json().catch(()=>({}));
+          console.error('github push error', putResp.status, errBody);
+          if(putResp.status===401 || putResp.status===403){
+            toast('اتصال گیت‌هاب قطعه — توکن نامعتبره یا دسترسی نداره');
+          }
+          return;
+        }
+        const j = await putResp.json();
+        ghKnownSha = j.content && j.content.sha;
+        setSyncDot('ok');
+        try{ localStorage.setItem(GH_LAST_SYNC_KEY, new Date().toISOString()); }catch(e){}
+      }catch(e){
+        console.error('github push exception', e);
+        setSyncDot('err');
+      }
+    }
+
+    function scheduleGithubSync(){
+      if(!getGhToken()) return;
+      if(ghSyncTimer) clearTimeout(ghSyncTimer);
+      ghSyncTimer = setTimeout(()=>{ ghSyncTimer = null; pushStateToGithub(); }, 2500);
+    }
+
+    let ghPullInFlight = false;
+    async function refreshFromGithubIfIdle(){
+      if(!getGhToken()) return;
+      if(ghSyncTimer) return;
+      if(ghPullInFlight) return;
+      ghPullInFlight = true;
+      try{
+        const remote = await fetchRemoteState();
+        if(remote && remote.days){
+          if(JSON.stringify(remote) !== JSON.stringify(APP_DATA)){
+            APP_DATA = remote;
+            try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(APP_DATA)); }catch(e){}
+            syncTasksFromData();
+            renderAll();
+            renderTaskManageList();
+            toast('دیتا از گیت‌هاب بروزرسانی شد ✓');
+          }
+        }
+      }catch(e){
+        console.error('refresh error', e);
+      }finally{
+        ghPullInFlight = false;
+      }
+    }
+    document.addEventListener('visibilitychange', ()=>{
+      if(document.visibilityState === 'visible') refreshFromGithubIfIdle();
+    });
+    window.addEventListener('focus', ()=>{ refreshFromGithubIfIdle(); });
+
+    let selectedDate = toISODate(new Date());
+    let currentView = "month"; // پیش‌فرض بر اساس سایز صفحه در init() تنظیم می‌شود
+
+    function isMobileLayout() {
+      return window.matchMedia("(max-width: 1050px)").matches;
+    }
+
+    function applyDefaultView() {
+      currentView = isMobileLayout() ? "week" : "month";
+      document.querySelectorAll(".tab").forEach(b => {
+        b.classList.toggle("active", b.dataset.view === currentView);
+      });
+    }
+    let dirty = false;
+    let datePickerControl = null;
+    let reportFromControl = null;
+    let reportToControl = null;
+    let reportFromISO = "";
+    let reportToISO = "";
+
+    const $ = id => document.getElementById(id);
+
+    async function loadData() {
+      try {
+        const rawJson = $("app-data").textContent.trim();
+        if (rawJson) {
+          const parsed = JSON.parse(rawJson);
+          if (parsed && parsed.days) {
+            APP_DATA = parsed;
+          }
+        }
+      } catch (e) {
+        console.error("خطا در خواندن دیتای فایل:", e);
+      }
+
+      try {
+        const local = localStorage.getItem(STORAGE_KEY);
+        if (local) {
+          const parsed = JSON.parse(local);
+          if (parsed && parsed.days && (!APP_DATA.updatedAt || (parsed.updatedAt > APP_DATA.updatedAt))) {
+            APP_DATA = parsed;
+          }
+        }
+      } catch (e) {
+        console.error("خطا در خواندن حافظه مرورگر:", e);
+      }
+
+      // اگر توکن گیت‌هاب وصل باشه، گیت‌هاب منبع اصلی دیتاست
+      if (getGhToken()) {
+        const remote = await fetchRemoteState();
+        if (remote && remote.days) {
+          APP_DATA = remote;
+          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(APP_DATA)); } catch (e) {}
+        } else if (!remote) {
+          // یا فایل هنوز رو گیت‌هاب نیست یا آفلاینیم — دیتای همین دستگاه رو push کن
+          await pushStateToGithub();
+        }
+      }
+
+      syncTasksFromData();
+    }
+
+    // لیست تسک‌ها هم داخل APP_DATA ذخیره و سینک میشه تا تغییرش رو همه‌ی دستگاه‌ها ببینن
+    function syncTasksFromData() {
+      if (Array.isArray(APP_DATA.tasks) && APP_DATA.tasks.length) {
+        TASKS = APP_DATA.tasks.slice();
+      } else {
+        TASKS = DEFAULT_TASKS.slice();
+        APP_DATA.tasks = TASKS.slice();
+      }
+    }
+
+    function addTask(name) {
+      name = (name || "").trim();
+      if (!name) return false;
+      if (TASKS.includes(name)) { toast("این تسک از قبل وجود داره"); return false; }
+      TASKS.push(name);
+      APP_DATA.tasks = TASKS.slice();
+      markDirty();
+      autoSaveLocal();
+      return true;
+    }
+
+    function removeTask(name) {
+      TASKS = TASKS.filter(t => t !== name);
+      APP_DATA.tasks = TASKS.slice();
+      markDirty();
+      autoSaveLocal();
+    }
+
+    function renderTaskManageList() {
+      const wrap = $("taskManageList");
+      if (!wrap) return;
+      wrap.innerHTML = "";
+      for (const task of TASKS) {
+        const row = document.createElement("div");
+        row.className = "task-manage-row";
+        row.innerHTML = `<span title="${task}">${task}</span><button type="button" title="حذف تسک">×</button>`;
+        row.querySelector("button").onclick = () => {
+          if (!confirm(`تسک «${task}» حذف بشه؟`)) return;
+          removeTask(task);
+          renderTaskManageList();
+          renderAll();
+        };
+        wrap.appendChild(row);
+      }
+    }
+
+    function autoSaveLocal() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(APP_DATA));
+      } catch (e) {
+        console.error("خطا در ذخیره خودکار مرورگر:", e);
+      }
+      scheduleGithubSync();
+    }
+
+    function pad(n) { return String(n).padStart(2, "0"); }
+
+    function toISODate(date) {
+      return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
+    }
+
+    function parseISO(iso) {
+      const [y,m,d]=iso.split("-").map(Number);
+      return new Date(y,m-1,d);
+    }
+
+    function addDays(date,n) {
+      const d=new Date(date); d.setDate(d.getDate()+n); return d;
+    }
+
+    function startOfWeekSaturday(date) {
+      const d=new Date(date), day=d.getDay();
+      d.setDate(d.getDate()-((day+1)%7));
+      return d;
+    }
+
+    function div(a,b){ return Math.floor(a/b); }
+
+    function jalCal(jy) {
+      const breaks=[-61,9,38,199,426,686,756,818,1111,1181,1210,1635,2060,2097,2192,2262,2324,2394,2456,3178];
+      const bl=breaks.length;
+      let gy=jy+621, leapJ=-14, jp=breaks[0], jm,jump,leap,leapG,march,n,i;
+      if(jy<jp || jy>=breaks[bl-1]) throw new Error("سال شمسی خارج از محدوده پشتیبانی است");
+      for(i=1;i<bl;i++){
+        jm=breaks[i]; jump=jm-jp;
+        if(jy<jm) break;
+        leapJ += div(jump,33)*8 + div(jump%33,4);
+        jp=jm;
+      }
+      n=jy-jp;
+      leapJ += div(n,33)*8 + div((n%33)+3,4);
+      if((jump%33)===4 && jump-n===4) leapJ++;
+      leapG=div(gy,4)-div((div(gy,100)+1)*3,4)-150;
+      march=20+leapJ-leapG;
+      if(jump-n<6) n=n-jump+div(jump+4,33)*33;
+      leap=((n+1)%33-1)%4;
+      if(leap===-1) leap=4;
+      return {leap,gy,march};
+    }
+
+    function jalaliToGregorian(jy,jm,jd) {
+      const r=jalCal(jy);
+      const g=new Date(r.gy,2,r.march);
+      const days=(jm<=6?(jm-1)*31:(jm-1)*30+6)+jd-1;
+      g.setDate(g.getDate()+days);
+      return g;
+    }
+
+    function gregorianToJalali(gy,gm,gd) {
+      const g=new Date(gy,gm-1,gd);
+      let jy=gy-621;
+      let r=jalCal(jy);
+      let start=new Date(r.gy,2,r.march);
+      let diff=Math.floor((g-start)/86400000);
+      if(diff>=0){
+        if(diff<=185) return {jy,jm:div(diff,31)+1,jd:diff%31+1};
+        diff-=186;
+        return {jy,jm:div(diff,30)+7,jd:diff%30+1};
+      }
+      jy--; r=jalCal(jy); start=new Date(r.gy,2,r.march);
+      diff=Math.floor((g-start)/86400000);
+      if(diff<=185) return {jy,jm:div(diff,31)+1,jd:diff%31+1};
+      diff-=186;
+      return {jy,jm:div(diff,30)+7,jd:diff%30+1};
+    }
+
+    function isoFromJalali(jy,jm,jd){ return toISODate(jalaliToGregorian(jy,jm,jd)); }
+    function jalaliFromISO(iso){
+      const d=parseISO(iso);
+      return gregorianToJalali(d.getFullYear(),d.getMonth()+1,d.getDate());
+    }
+
+    const JALALI_MONTHS=["فروردین","اردیبهشت","خرداد","تیر","مرداد","شهریور","مهر","آبان","آذر","دی","بهمن","اسفند"];
+    const JALALI_WEEKDAYS=["شنبه","یکشنبه","دوشنبه","سه‌شنبه","چهارشنبه","پنجشنبه","جمعه"];
+
+    function jalaliParts(date){
+      const j=gregorianToJalali(date.getFullYear(),date.getMonth()+1,date.getDate());
+      return {year:String(j.jy),month:JALALI_MONTHS[j.jm-1],monthNumber:j.jm,day:String(j.jd),weekday:JALALI_WEEKDAYS[(date.getDay()+1)%7]};
+    }
+    function jalaliText(date){
+      const p=jalaliParts(date);
+      return `${p.weekday}، ${p.day} ${p.month} ${p.year}`;
+    }
+
+    function daysInJalaliMonth(year,month){
+      if(month<=6) return 31;
+      if(month<=11) return 30;
+      const a=jalaliToGregorian(year,12,1), b=jalaliToGregorian(year+1,1,1);
+      return Math.round((b-a)/86400000);
+    }
+
+    // محاسبه‌ی بازه‌ی ۱ تا آخر ماه شمسی فعلی
+    function getFullJalaliMonthRange(dateObj) {
+      const j = gregorianToJalali(dateObj.getFullYear(), dateObj.getMonth()+1, dateObj.getDate());
+      const maxDays = daysInJalaliMonth(j.jy, j.jm);
+      const fromISO = isoFromJalali(j.jy, j.jm, 1);
+      const toISO = isoFromJalali(j.jy, j.jm, maxDays);
+      return { fromISO, toISO };
+    }
+
+    function createJalaliPicker(containerId,initialISO,onChange){
+      const el=$(containerId);
+      el.innerHTML=`<select class="j-year" aria-label="سال"></select><select class="j-month" aria-label="ماه"></select><select class="j-day" aria-label="روز"></select>`;
+      const ys=el.querySelector(".j-year"), ms=el.querySelector(".j-month"), ds=el.querySelector(".j-day");
+      for(let y=1400;y<=1410;y++){ const o=document.createElement("option"); o.value=y;o.textContent=y;ys.appendChild(o); }
+      JALALI_MONTHS.forEach((m,i)=>{ const o=document.createElement("option");o.value=i+1;o.textContent=m;ms.appendChild(o); });
+
+      function fillDays(){
+        const max=daysInJalaliMonth(Number(ys.value),Number(ms.value));
+        const old=Number(ds.value)||1; ds.innerHTML="";
+        for(let d=1;d<=max;d++){const o=document.createElement("option");o.value=d;o.textContent=d;ds.appendChild(o);}
+        ds.value=Math.min(old,max);
+      }
+      function setISO(iso){
+        const j=jalaliFromISO(iso);
+        ys.value=j.jy; ms.value=j.jm; fillDays(); ds.value=j.jd;
+      }
+      function getISO(){ return isoFromJalali(Number(ys.value),Number(ms.value),Number(ds.value)); }
+      function changed(){ onChange(getISO()); }
+      ys.addEventListener("change",()=>{fillDays();changed();});
+      ms.addEventListener("change",()=>{fillDays();changed();});
+      ds.addEventListener("change",changed);
+      setISO(initialISO);
+      return {setISO,getISO};
+    }
+
+    function getDayData(iso) {
+      if (!APP_DATA.days[iso]) APP_DATA.days[iso] = {};
+      return APP_DATA.days[iso];
+    }
+
+    function getTaskStatus(iso, task) {
+      return APP_DATA.days?.[iso]?.[task] || "";
+    }
+
+    function setTaskStatus(iso, task, status) {
+      getDayData(iso)[task] = status;
+      markDirty();
+      renderAll();
+      autoSaveLocal();
+    }
+
+    function markDirty() {
+      dirty = true;
+      APP_DATA.updatedAt = new Date().toISOString();
+    }
+
+    function renderTasks() {
+      const list = $("taskList");
+      list.innerHTML = "";
+
+      for (const task of TASKS) {
+        const status = getTaskStatus(selectedDate, task);
+        const isExercise = task === "ورزش";
+
+        const row = document.createElement("div");
+        row.className = "task-row";
+
+        row.innerHTML = `
+          <div class="task-name" title="${task}">${task}</div>
+          <button class="status-btn done ${status === "done" ? "active" : ""}" title="انجام شد">✓</button>
+          <button class="status-btn fail ${status === "fail" ? "active" : ""}" title="انجام نشد">×</button>
+          <button class="status-btn clear ${status === "skip" ? "active" : ""} ${isExercise ? "" : "disabled"}" title="${isExercise ? "روز بدون ورزش" : "فقط برای ورزش فعال است"}" ${isExercise ? "" : "disabled"}>-</button>
+        `;
+
+        row.querySelector(".done").onclick = () => setTaskStatus(selectedDate, task, status === "done" ? "" : "done");
+        row.querySelector(".fail").onclick = () => setTaskStatus(selectedDate, task, status === "fail" ? "" : "fail");
+        if (isExercise) {
+          row.querySelector(".clear").onclick = () => setTaskStatus(selectedDate, task, status === "skip" ? "" : "skip");
+        }
+
+        list.appendChild(row);
+      }
+    }
+
+    function countRange(dates) {
+      let done = 0, fail = 0, empty = 0, total = 0;
+
+      for (const iso of dates) {
+        for (const task of TASKS) {
+          const s = getTaskStatus(iso, task);
+          if (task === "ورزش" && s === "skip") continue;
+          total++;
+          if (s === "done") done++;
+          else if (s === "fail") fail++;
+          else empty++;
+        }
+      }
+
+      const percent = total ? Math.round((done / total) * 100) : 0;
+      return { done, fail, empty, total, percent };
+    }
+
+    function renderStats() {
+      const today = parseISO(selectedDate);
+      const weekStart = startOfWeekSaturday(today);
+      const weekDates = Array.from({length: 7}, (_, i) => toISODate(addDays(weekStart, i)));
+
+      const currentMonthParts = jalaliParts(today);
+      const monthDates = Object.keys(APP_DATA.days).filter(iso => {
+        const p = jalaliParts(parseISO(iso));
+        return p.year === currentMonthParts.year && p.month === currentMonthParts.month;
+      });
+
+      const dayStats = countRange([selectedDate]);
+      const weekStats = countRange(weekDates);
+      const monthStats = countRange(monthDates.length ? monthDates : [selectedDate]);
+
+      $("stats").innerHTML = `
+        <div class="stat green">
+          <div class="label">تیک‌های امروز</div>
+          <div class="value">${dayStats.done}</div>
+        </div>
+        <div class="stat red">
+          <div class="label">ضربدرهای امروز</div>
+          <div class="value">${dayStats.fail}</div>
+        </div>
+        <div class="stat blue">
+          <div class="label">درصد هفته</div>
+          <div class="value">${weekStats.percent}%</div>
+        </div>
+        <div class="stat yellow">
+          <div class="label">درصد ماه ثبت‌شده</div>
+          <div class="value">${monthStats.percent}%</div>
+        </div>
+      `;
+    }
+
+    function markHTML(status) {
+      if (status === "done") return `<span class="mark done">✓</span>`;
+      if (status === "fail") return `<span class="mark fail">×</span>`;
+      if (status === "skip") return `<span class="mark skip">-</span>`;
+      return `<span class="mark empty">-</span>`;
+    }
+
+    function getReportDates(){
+      let from=reportFromISO,to=reportToISO;
+      if(from>to)[from,to]=[to,from];
+      const dates=[]; let cur=parseISO(from), end=parseISO(to);
+      while(cur<=end){dates.push(toISODate(cur));cur=addDays(cur,1);}
+      return dates;
+    }
+
+    function monthKeyFromISO(iso){
+      const j=jalaliFromISO(iso); return `${j.jy}-${pad(j.jm)}`;
+    }
+    function monthLabelFromKey(key){
+      const [y,m]=key.split("-").map(Number); return `${JALALI_MONTHS[m-1]} ${y}`;
+    }
+    function groupDatesByJalaliMonth(dates){
+      const map=new Map();
+      for(const iso of dates){
+        const key=monthKeyFromISO(iso);
+        if(!map.has(key))map.set(key,[]);
+        map.get(key).push(iso);
+      }
+      return map;
+    }
+
+    function renderTable(dates,title,showWeekday=false){
+      const st=countRange(dates);
+      let html=`<div class="status-line">${title} | انجام‌شده: ${st.done} | انجام‌نشده: ${st.fail} | درصد: ${st.percent}%</div><br>
+      <div class="table-wrap"><table><thead><tr><th>تسک</th>`;
+      html+=dates.map(iso=>{
+        const p=jalaliParts(parseISO(iso));
+        return `<th>${p.day}${showWeekday?`<div class="mini">${p.weekday}</div>`:""}</th>`;
+      }).join("");
+      html+=`</tr></thead><tbody>`;
+      for(const task of TASKS){
+        html+=`<tr><td>${task}</td>`;
+        for(const iso of dates){
+          const s=getTaskStatus(iso,task);
+          html+=`<td>${markHTML(s)}</td>`;
+        }
+        html+=`</tr>`;
+      }
+      return html+`</tbody></table></div>`;
+    }
+
+    function renderTaskChart(dates,title){
+      let html=`<div class="chart-card"><h3>${title}</h3>`;
+      for(const task of TASKS){
+        const applicableDays=dates.reduce((n,iso)=>{
+          const s=getTaskStatus(iso,task);
+          return n + ((task === "ورزش" && s === "skip") ? 0 : 1);
+        },0);
+        const done=dates.reduce((n,iso)=>n+(getTaskStatus(iso,task)==="done"?1:0),0);
+        const pct=applicableDays ? Math.round((done/applicableDays)*10000)/100 : 0;
+        html+=`<div class="task-chart-row">
+          <div class="task-chart-name" title="${task}">${task}</div>
+          <div class="task-chart-bar"><span style="width:${Math.min(100,pct)}%"></span></div>
+          <div class="task-chart-value">${pct}%</div>
+        </div>`;
+      }
+      return html+`</div>`;
+    }
+
+    function renderWeek(){
+      const base=parseISO(selectedDate);
+      const start=startOfWeekSaturday(base);
+      const dates=Array.from({length:7},(_,i)=>toISODate(addDays(start,i)));
+      $("reportArea").innerHTML=`<div class="weekly-report">${renderTable(dates,"گزارش هفتگی",true)}</div>`;
+    }
+
+    function renderMonth(){
+      const groups=groupDatesByJalaliMonth(getReportDates());
+      let html="";
+      for(const [key,dates] of groups){
+        html+=`<div class="report-block period-report"><div class="report-section-title">${monthLabelFromKey(key)}</div>
+          ${renderTable(dates,"گزارش ماهانه",false)}
+          ${renderTaskChart(dates,`درصد انجام هر تسک در ${monthLabelFromKey(key)}`)}</div>`;
+      }
+      $("reportArea").innerHTML=html||`<div class="status-line">بازه‌ای انتخاب نشده است.</div>`;
+    }
+
+    function renderMulti(){
+      const dates=getReportDates(), groups=groupDatesByJalaliMonth(dates);
+      let html="";
+      for(const [key,monthDates] of groups){
+        html+=`<div class="report-block period-report"><div class="report-section-title">${monthLabelFromKey(key)}</div>
+          ${renderTable(monthDates,"گزارش ماه",false)}</div>`;
+      }
+      html+=renderTaskChart(dates,`درصد انجام هر تسک در کل بازه (${dates.length} روز)`);
+      $("reportArea").innerHTML=html||`<div class="status-line">بازه‌ای انتخاب نشده است.</div>`;
+    }
+
+    function renderReport(){
+      if(currentView==="week")renderWeek();
+      if(currentView==="month")renderMonth();
+      if(currentView==="multi")renderMulti();
+    }
+
+    function renderDate() {
+      const d = parseISO(selectedDate);
+      if(datePickerControl) datePickerControl.setISO(selectedDate);
+      $("jalaliDateText").textContent = jalaliText(d);
+      $("gregorianDateText").textContent = `تاریخ داخلی: ${selectedDate}`;
+    }
+
+    function renderAll() {
+      renderDate();
+      renderTasks();
+      renderStats();
+      renderReport();
+    }
+
+    function toast(msg) {
+      const t = $("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 3200);
+    }
+
+    $("prevDayBtn").addEventListener("click", () => {
+      selectedDate = toISODate(addDays(parseISO(selectedDate), -1));
+      renderAll();
+    });
+
+    $("nextDayBtn").addEventListener("click", () => {
+      selectedDate = toISODate(addDays(parseISO(selectedDate), 1));
+      renderAll();
+    });
+
+    $("editTasksBtn").addEventListener("click", () => {
+      const panel = $("taskManagePanel");
+      const showing = panel.style.display !== "none";
+      panel.style.display = showing ? "none" : "flex";
+      if (!showing) renderTaskManageList();
+    });
+
+    function handleAddTask() {
+      const input = $("newTaskInput");
+      if (addTask(input.value)) {
+        input.value = "";
+        renderTaskManageList();
+        renderAll();
+      }
+    }
+    $("addTaskBtn").addEventListener("click", handleAddTask);
+    $("newTaskInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { e.preventDefault(); handleAddTask(); }
+    });
+
+    document.querySelectorAll(".tab").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentView = btn.dataset.view;
+        renderReport();
+      });
+    });
+
+    // iOS Safari ignores user-scalable=no in the viewport meta, so pinch-zoom and
+    // double-tap-zoom have to be blocked directly.
+    ['gesturestart','gesturechange','gestureend'].forEach(evt=>{
+      document.addEventListener(evt, e=>e.preventDefault(), { passive:false });
+    });
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', e=>{
+      const now = Date.now();
+      if(now - lastTouchEnd <= 300) e.preventDefault();
+      lastTouchEnd = now;
+    }, { passive:false });
+
+    function syncMobileHeaderHeight() {
+      const header = $("appHeader");
+      if (!header) return;
+      if (window.matchMedia("(max-width: 1050px)").matches) {
+        document.documentElement.style.setProperty("--mobile-header-h", (header.offsetHeight + 14) + "px");
+      }
+    }
+    window.addEventListener("resize", syncMobileHeaderHeight);
+    window.addEventListener("orientationchange", syncMobileHeaderHeight);
+
+    function refreshSyncModalStatus() {
+      const token = getGhToken();
+      const input = $("syncTokenInput");
+      if (token) {
+        input.value = token;
+        let lastSync = '';
+        try { lastSync = localStorage.getItem(GH_LAST_SYNC_KEY) || ''; } catch (e) {}
+        if (lastSync) {
+          const d = new Date(lastSync);
+          setSyncStatusText('متصل — آخرین همگام‌سازی ' + d.toLocaleTimeString('fa-IR'));
+        } else {
+          setSyncStatusText('متصل');
+        }
+      } else {
+        input.value = '';
+        setSyncStatusText('متصل نیست — فقط رو همین گوشی ذخیره میشه');
+      }
+    }
+    function openSyncModal() {
+      refreshSyncModalStatus();
+      $("syncModal").style.display = 'flex';
+    }
+    function closeSyncModal() {
+      $("syncModal").style.display = 'none';
+    }
+    $("syncSettingsBtn").onclick = openSyncModal;
+    $("syncModalClose").onclick = closeSyncModal;
+    $("syncModal").onclick = (e) => { if (e.target.id === 'syncModal') closeSyncModal(); };
+    $("syncSaveBtn").onclick = async () => {
+      const val = $("syncTokenInput").value.trim();
+      if (!val) { toast('اول توکن رو وارد کن'); return; }
+      setGhToken(val);
+      setSyncStatusText('در حال بررسی اتصال...');
+      const remote = await fetchRemoteState();
+      if (remote && remote.days) {
+        APP_DATA = remote;
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(APP_DATA)); } catch (e) {}
+        syncTasksFromData();
+        renderAll();
+        renderTaskManageList();
+        toast('وصل شد و دیتای گیت‌هاب لود شد ✓');
+      } else {
+        await pushStateToGithub();
+        toast('وصل شد، دیتای این دستگاه رو گیت‌هاب ذخیره شد ✓');
+      }
+      refreshSyncModalStatus();
+    };
+    $("syncNowBtn").onclick = async () => {
+      if (!getGhToken()) { toast('اول باید توکن رو وارد و ذخیره کنی'); return; }
+      setSyncStatusText('در حال همگام‌سازی...');
+      await pushStateToGithub();
+      refreshSyncModalStatus();
+      toast('همگام‌سازی انجام شد ✓');
+    };
+    $("syncDisconnectBtn").onclick = () => {
+      if (!confirm('اتصال به گیت‌هاب قطع بشه؟ توکن از این گوشی پاک میشه (دیتای خود گیت‌هاب دست نمی‌خوره).')) return;
+      clearGhToken();
+      setSyncDot('off');
+      refreshSyncModalStatus();
+      toast('اتصال قطع شد');
+    };
+
+    (async function init() {
+      setSyncDot(getGhToken() ? 'ok' : 'off');
+      await loadData();
+
+      const now = new Date();
+      selectedDate = toISODate(now);
+
+      // محاسبه‌ی بازه‌ی ۱ تا آخر ماه شمسی روز جاری
+      const range = getFullJalaliMonthRange(now);
+      reportFromISO = range.fromISO;
+      reportToISO = range.toISO;
+
+      reportFromControl = createJalaliPicker("reportFromPicker", reportFromISO, (iso) => {
+        reportFromISO = iso;
+        renderReport();
+      });
+      reportToControl = createJalaliPicker("reportToPicker", reportToISO, (iso) => {
+        reportToISO = iso;
+        renderReport();
+      });
+
+      applyDefaultView();
+      renderAll();
+      renderTaskManageList();
+      syncMobileHeaderHeight();
+    })();
+  </script>
+
+</body></html>
