@@ -1,6 +1,6 @@
 // Service worker for offline support — caches whatever is fetched so the
 // app keeps working without a network connection after the first load.
-const CACHE_NAME = 'daily-tasks-v1';
+const CACHE_NAME = 'daily-tasks-v2';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
