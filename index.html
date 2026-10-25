@@ -69,28 +69,34 @@
       width: 100%;
       max-width: 100%;
       margin: 0 auto;
-      padding: 16px 20px 30px;
+      padding: calc(var(--header-h, 90px) + 16px) 20px 30px;
     }
 
     .header {
-      background: linear-gradient(135deg, rgba(17,24,39,.96), rgba(31,41,55,.94));
+      background: linear-gradient(135deg, rgb(17,24,39), rgb(31,41,55));
       border: 1px solid var(--border);
-      border-radius: 24px;
+      border-radius: 0 0 24px 24px;
       box-shadow: var(--shadow);
-      padding: 18px 24px;
+      padding: calc(env(safe-area-inset-top, 0px) + 14px) 24px 14px;
       display: grid;
-      grid-template-columns: 1.2fr .8fr;
+      grid-template-columns: 1fr auto 1fr;
       gap: 18px;
       align-items: center;
-      position: sticky;
-      top: 10px;
-      z-index: 20;
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+    }
+
+    .title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .title h1 {
-      margin: 0 0 6px;
+      margin: 0;
       font-size: 26px;
       font-weight: 900;
       letter-spacing: -.5px;
@@ -101,6 +107,22 @@
       color: var(--muted);
       font-size: 14px;
       line-height: 1.8;
+    }
+
+    .app-logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      display: block;
+    }
+
+    .app-logo-inline {
+      display: none;
+    }
+
+    .app-logo-mid {
+      justify-self: center;
     }
 
     .controls {
@@ -313,50 +335,33 @@
       cursor: not-allowed;
     }
 
-    .task-manage {
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px dashed var(--border);
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .task-manage-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      background: rgba(15,23,42,.6);
-      border: 1px solid rgba(45,58,82,.8);
-      border-radius: 10px;
-      padding: 6px 10px;
-    }
-
-    .task-manage-row span {
-      font-size: 12px;
-      font-weight: 600;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .task-manage-row button {
-      border: 1px solid rgba(239,68,68,.45);
+    .status-btn.del {
+      display: none;
       background: rgba(239,68,68,.15);
+      border-color: rgba(239,68,68,.45);
       color: var(--red);
-      border-radius: 8px;
-      width: 28px;
-      height: 28px;
-      cursor: pointer;
-      font-weight: 900;
-      flex-shrink: 0;
+    }
+
+    .task-list.edit-mode .task-row {
+      grid-template-columns: 1fr 38px 38px 38px 38px;
+    }
+
+    .task-list.edit-mode .status-btn.del {
+      display: flex;
+    }
+
+    #editTasksBtn.active-edit {
+      background: linear-gradient(135deg, var(--blue), var(--blue-2));
+      border-color: rgba(59,130,246,.7);
+      color: #fff;
     }
 
     .task-add-row {
       display: flex;
       gap: 8px;
-      margin-top: 4px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--border);
     }
 
     .task-add-row input {
@@ -749,27 +754,27 @@
     }
 
     @media (max-width: 1050px) {
-      .app {
-        padding-top: var(--mobile-header-h, 90px);
-      }
-
-      .header, .grid {
+      .grid {
         grid-template-columns: 1fr;
       }
 
       .header {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        margin: 0;
+        grid-template-columns: 1fr;
         border-radius: 0 0 20px 20px;
         padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px;
-        z-index: 50;
+        gap: 10px;
+      }
+
+      .app-logo-inline {
+        display: block;
+      }
+
+      .app-logo-mid {
+        display: none;
       }
 
       .controls {
-        justify-content: flex-start;
+        justify-content: center;
       }
 
       .stats {
@@ -816,8 +821,11 @@
   <div class="app">
     <header class="header" id="appHeader">
       <div class="title">
+        <img class="app-logo app-logo-inline" src="icon-192.png" alt="">
         <h1>چک‌لیست تسک‌های روزانه</h1>
       </div>
+
+      <img class="app-logo app-logo-mid" src="icon-192.png" alt="">
 
       <div class="controls">
         <button class="btn" id="syncSettingsBtn" style="position:relative;">
@@ -953,12 +961,9 @@
           <button class="status-btn clear  disabled" title="فقط برای ورزش فعال است" disabled="">-</button>
         </div></div>
 
-          <div class="task-manage" id="taskManagePanel" style="display:none;">
-            <div class="task-manage-list" id="taskManageList"></div>
-            <div class="task-add-row">
-              <input type="text" id="newTaskInput" placeholder="اسم تسک جدید...">
-              <button class="btn primary" id="addTaskBtn" type="button">افزودن</button>
-            </div>
+          <div class="task-add-row" id="taskManagePanel" style="display:none;">
+            <input type="text" id="newTaskInput" placeholder="اسم تسک جدید...">
+            <button class="btn primary" id="addTaskBtn" type="button">افزودن</button>
           </div>
         </div>
       </section>
@@ -1232,7 +1237,6 @@
             try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(APP_DATA)); }catch(e){}
             syncTasksFromData();
             renderAll();
-            renderTaskManageList();
             toast('دیتا از گیت‌هاب بروزرسانی شد ✓');
           }
         }
@@ -1337,23 +1341,7 @@
       autoSaveLocal();
     }
 
-    function renderTaskManageList() {
-      const wrap = $("taskManageList");
-      if (!wrap) return;
-      wrap.innerHTML = "";
-      for (const task of TASKS) {
-        const row = document.createElement("div");
-        row.className = "task-manage-row";
-        row.innerHTML = `<span title="${task}">${task}</span><button type="button" title="حذف تسک">×</button>`;
-        row.querySelector("button").onclick = () => {
-          if (!confirm(`تسک «${task}» حذف بشه؟`)) return;
-          removeTask(task);
-          renderTaskManageList();
-          renderAll();
-        };
-        wrap.appendChild(row);
-      }
-    }
+    let taskEditMode = false;
 
     function autoSaveLocal() {
       try {
@@ -1519,6 +1507,7 @@
     function renderTasks() {
       const list = $("taskList");
       list.innerHTML = "";
+      list.classList.toggle("edit-mode", taskEditMode);
 
       for (const task of TASKS) {
         const status = getTaskStatus(selectedDate, task);
@@ -1532,6 +1521,7 @@
           <button class="status-btn done ${status === "done" ? "active" : ""}" title="انجام شد">✓</button>
           <button class="status-btn fail ${status === "fail" ? "active" : ""}" title="انجام نشد">×</button>
           <button class="status-btn clear ${status === "skip" ? "active" : ""} ${isExercise ? "" : "disabled"}" title="${isExercise ? "روز بدون ورزش" : "فقط برای ورزش فعال است"}" ${isExercise ? "" : "disabled"}>-</button>
+          <button class="status-btn del" type="button" title="حذف تسک">🗑</button>
         `;
 
         row.querySelector(".done").onclick = () => setTaskStatus(selectedDate, task, status === "done" ? "" : "done");
@@ -1539,6 +1529,11 @@
         if (isExercise) {
           row.querySelector(".clear").onclick = () => setTaskStatus(selectedDate, task, status === "skip" ? "" : "skip");
         }
+        row.querySelector(".del").onclick = () => {
+          if (!confirm(`تسک «${task}» حذف بشه؟`)) return;
+          removeTask(task);
+          renderAll();
+        };
 
         list.appendChild(row);
       }
@@ -1733,17 +1728,16 @@
     });
 
     $("editTasksBtn").addEventListener("click", () => {
-      const panel = $("taskManagePanel");
-      const showing = panel.style.display !== "none";
-      panel.style.display = showing ? "none" : "flex";
-      if (!showing) renderTaskManageList();
+      taskEditMode = !taskEditMode;
+      $("editTasksBtn").classList.toggle("active-edit", taskEditMode);
+      $("taskManagePanel").style.display = taskEditMode ? "flex" : "none";
+      renderTasks();
     });
 
     function handleAddTask() {
       const input = $("newTaskInput");
       if (addTask(input.value)) {
         input.value = "";
-        renderTaskManageList();
         renderAll();
       }
     }
@@ -1776,9 +1770,7 @@
     function syncMobileHeaderHeight() {
       const header = $("appHeader");
       if (!header) return;
-      if (window.matchMedia("(max-width: 1050px)").matches) {
-        document.documentElement.style.setProperty("--mobile-header-h", (header.offsetHeight + 14) + "px");
-      }
+      document.documentElement.style.setProperty("--header-h", (header.offsetHeight + 10) + "px");
     }
     window.addEventListener("resize", syncMobileHeaderHeight);
     window.addEventListener("orientationchange", syncMobileHeaderHeight);
@@ -1822,7 +1814,6 @@
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(APP_DATA)); } catch (e) {}
         syncTasksFromData();
         renderAll();
-        renderTaskManageList();
         toast('وصل شد و دیتای گیت‌هاب لود شد ✓');
       } else {
         await pushStateToGithub();
@@ -1868,7 +1859,6 @@
 
       applyDefaultView();
       renderAll();
-      renderTaskManageList();
       syncMobileHeaderHeight();
     })();
   </script>
